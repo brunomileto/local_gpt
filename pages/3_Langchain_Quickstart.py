@@ -3,11 +3,10 @@ from langchain.llms import OpenAI
 
 st.title("🦜🔗 Langchain Quickstart App")
 
-with st.sidebar:
-    openai_api_key = st.text_input("OpenAI API Key", type="password")
-    "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
-
-
+import dotenv
+import os
+dotenv.load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 def generate_response(input_text):
     llm = OpenAI(temperature=0.7, openai_api_key=openai_api_key)
     st.info(llm(input_text))

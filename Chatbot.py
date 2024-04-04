@@ -1,29 +1,31 @@
-from openai import OpenAI
 import streamlit as st
 
+from enums.EnumChatRoles import EnumChatRoles
+from models.ChatMessage import ChatMessage
+from services.chat_services import ChatService
+import dotenv
+import os
+
+from services.chat_session_state_service import ChatSessionStateService
+from services.session_state_service import SessionStateService
+
+dotenv.load_dotenv()
+
+openai_api_key = os.getenv("OPENAI_API_KEY")
+session_state_service = SessionStateService()
+chat_message = ChatMessage(role=EnumChatRoles.ASSISTANT, content="Como posso te ajudar?")
+chat_session_state_service = ChatSessionStateService(session_state_service, chat_message)
+chat_service = ChatService(openai_api_key, chat_session_state_service)
+
+st.title("💬 Chat")
+st.caption("🚀 Chatbot Simples!")
+
 with st.sidebar:
-    openai_api_key = st.text_input("OpenAI API Key", key="chatbot_api_key", type="password")
-    "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
-    "[View the source code](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
-    "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
+    st.header("Conversas")
+    chat_service.render_sidebar_controls()
 
-st.title("💬 Chatbot")
-st.caption("🚀 A streamlit chatbot powered by OpenAI LLM")
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "How can I help you?"}]
+chat_service.render_conversation()
 
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
-
-if prompt := st.chat_input():
-    if not openai_api_key:
-        st.info("Please add your OpenAI API key to continue.")
-        st.stop()
-
-    client = OpenAI(api_key=openai_api_key)
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
-    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=st.session_state.messages)
-    msg = response.choices[0].message.content
-    st.session_state.messages.append({"role": "assistant", "content": msg})
-    st.chat_message("assistant").write(msg)
+user_input = chat_service.get_user_input()
+if user_input:
+    chat_service.process_user_input(user_input)

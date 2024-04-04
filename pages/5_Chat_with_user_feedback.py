@@ -3,11 +3,11 @@ import streamlit as st
 from streamlit_feedback import streamlit_feedback
 import trubrics
 
-with st.sidebar:
-    openai_api_key = st.text_input("OpenAI API Key", key="feedback_api_key", type="password")
-    "[Get an OpenAI API key](https://platform.openai.com/account/api-keys)"
-    "[View the source code](https://github.com/streamlit/llm-examples/blob/main/pages/5_Chat_with_user_feedback.py)"
-    "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
+import dotenv
+import os
+dotenv.load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+    
 
 st.title("📝 Chat with feedback (Trubrics)")
 
@@ -35,7 +35,7 @@ if prompt := st.chat_input(placeholder="Tell me a joke about sharks"):
         st.info("Please add your OpenAI API key to continue.")
         st.stop()
     client = OpenAI(api_key=openai_api_key)
-    response = client.chat.completions.create(model="gpt-3.5-turbo", messages=messages)
+    response = client.chat.completions.create(model="gpt-4-1106-preview", messages=messages)
     st.session_state["response"] = response.choices[0].message.content
     with st.chat_message("assistant"):
         messages.append({"role": "assistant", "content": st.session_state["response"]})

@@ -4,12 +4,14 @@ from langchain.prompts import PromptTemplate
 
 st.title("🦜🔗 Langchain - Blog Outline Generator App")
 
-openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
-
+import dotenv
+import os
+dotenv.load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
 
 def blog_outline(topic):
     # Instantiate LLM model
-    llm = OpenAI(model_name="text-davinci-003", openai_api_key=openai_api_key)
+    llm = OpenAI(model_name="gpt-4-1106-preview", openai_api_key=openai_api_key)
     # Prompt
     template = "As an experienced data scientist and technical writer, generate an outline for a blog about {topic}."
     prompt = PromptTemplate(input_variables=["topic"], template=template)

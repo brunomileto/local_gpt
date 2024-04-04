@@ -19,15 +19,7 @@ class ChatService:
       selected_model = st.selectbox("Escolha um modelo", [""] + list(EnumModels.all_descriptions()))
       if selected_model:
         self.chat_state.selected_model = EnumModels.get_model_by_description(selected_model)
-  
-  #TODO: I'M TRYING TO FIX THIS METHOD.
-  # SO 'ATUAL' HAS NO CONVERSATION ASSOCIATED
-  # MY IDEA IS TO NOT USE 'ATUAL'. INSTEAD USE THE LIST OF PREV CONVERSATION
-  # WHERE THE PREV CONVERSATION WILL HAVE ALSO, THE ACTUAL CONVERSATION ALWAYS
-  # THE INDEX WILL BE THE 'KEY' TO KNOW IN WHICH CONVERSATION I'M
-  # MAYBE CONVERT PREV CONVERSATION INTO A DICT?
-  # WHEN STARTING A NEW CONVERSATION OR WHEN LOAD ANOTHER CONVERSATION
-  # THIS METHOD SHOULD CONSIDER THAT.
+        
   def render_sidebar_controls(self):
     new_convo_button = st.button("Inicie uma nova conversa")
     

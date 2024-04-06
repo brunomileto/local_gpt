@@ -17,7 +17,7 @@ class GPTModel:
   def prompt(self) -> str:
     return self._gpt_prompt
   
-  @name.setter
+  @prompt.setter
   def prompt(self, value:str) -> None:
     if not isinstance(value, str):
       raise ValueError("GPT prompt must be a string")

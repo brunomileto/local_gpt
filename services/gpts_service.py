@@ -2,61 +2,63 @@ import streamlit as st
 
 from models.GPT import GPTModel
 from services.gpt_session_state_service import GPTSessionStateService
-
+#
 class GPTService:
   def __init__(self, gpt_session_state_service:GPTSessionStateService) -> None:
     self.gpt_state = gpt_session_state_service
+    
+  @property
+  def is_updating(self) -> bool:
+    gpts = self.gpt_state.gpts
+    if gpts and self.name in gpts.keys():
+      return True
+    return False  
+    
+  @property
+  def name(self) -> str:
+    return st.session_state.get("gpt_name")
   
-  def load_gpt(self, selected_gpt:str):
-    if selected_gpt == 'Atual':
-      self.render_new_gpt()
-    else:
-      self.render_gpt(selected_gpt)
+  @name.setter
+  def name(self, value:str) -> None:
+    st.session_state.gpt_name = value
   
+  @property
+  def prompt(self) -> str:
+    return st.session_state.get("gpt_prompt")
+  
+  @prompt.setter
+  def prompt(self, value:str) -> None:
+    st.session_state.gpt_prompt = value
+    
+  def render_gpt(self):
+    st.text_input("Informe o nome do gpt", key="gpt_name", )
+    st.text_area("Informe o prompt", key="gpt_prompt", height=600)
+    st.button("Salvar", on_click=self.submit_gpt, disabled= not (self.name and self.prompt))
+  
+  def submit_gpt(self):
+    if self.name and self.prompt:
+      gpt = GPTModel(name=self.name, prompt=self.prompt)
+      self.gpt_state.save_gpt(gpt)
+      if self.is_updating:
+        self.reset_gpts_list()
+      self.clear_inputs()
+  
+  def clear_inputs(self):
+    st.session_state.gpt_name = ''
+    st.session_state.gpt_prompt = ''
+
   def render_sidebar_controls(self):
-    new_button = st.button("Criar novo GPT")
-    if new_button:
-      self.render_new_gpt()
-    
-    if (self.gpt_state.gpts):
-      gpts = ["Atual"] + [f"{key}" for key in sorted(self.gpt_state.gpts.keys())]
-      selected_gpt = st.radio("GPTs", gpts)
-      if (selected_gpt != self.gpt_state.selected_gpt):
-        self.load_gpt(selected_gpt)
-    
-  def validate_new_gpt(self, gpt:GPTModel):
-    if not gpt.name:
-      st.info("Informe o nome do gpt")
-      st.stop()
-    if not gpt.prompt:
-      st.info("Informe o prompt")
-      st.stop()
-    if not self.gpt_state.validate_gpt_creation(gpt):
-      st.info("Não foi possível criar este gpt.")
-      st.stop()
-    return True
+    gpts = self.gpt_state.gpts
+    if gpts:
+      st.radio("GPTs", ["Novo"] + [f"{key}" for key in sorted(gpts.keys())], on_change=self.load_gpt, key='gpts_list')
   
-  def render_new_gpt(self):
-    gpt_name = st.text_input("Informe um nome para o gpt", key="gpt_name_input")
-    gpt_prompt = st.text_area("Insira o prompt", key="gpt_prompt_text_area", height=600)
-    gpt_save = st.button("Salvar")
-    if gpt_name and gpt_prompt:
-      new_gpt = GPTModel(gpt_name, gpt_prompt)   
-      if gpt_save and self.validate_new_gpt(new_gpt):
-        self.gpt_state.create_gpt(new_gpt)
-        
-  def render_gpt(self, gpt_name:str):
-    gpt = self.gpt_state.get_gpt(gpt_name)
-    if not gpt:
-      self.render_new_gpt()
-    gpt_name = st.text_input("Informe um nome para o gpt", key="gpt_name_input", value=gpt.name)
-    gpt_prompt = st.text_area("Insira o prompt", key="gpt_prompt_text_area", height=600, value=gpt.prompt)
-    gpt_save = st.button("Salvar")
-    if gpt_name and gpt_prompt:
-      new_gpt = GPTModel(gpt_name, gpt_prompt)   
-      if gpt_save and self.validate_new_gpt(new_gpt):
-        self.gpt_state.create_gpt(new_gpt)
+  def reset_gpts_list(self):
+    st.session_state.gpts_list = "Novo"
   
-    
-  #TODO: testar renders. A ideia é de uma página somente para criação de gpts(esta), e outra
-  # para selecionar e utilizar os gpts
+  def load_gpt(self):
+    key = st.session_state.get("gpts_list")
+    if key in self.gpt_state.gpts.keys():
+      self.name = key
+      self.prompt = self.gpt_state.gpts[key]
+    else:
+      self.clear_inputs()

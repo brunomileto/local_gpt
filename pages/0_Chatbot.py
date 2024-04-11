@@ -8,9 +8,10 @@ import os
 
 from services.chat_session_state_service import ChatSessionStateService
 from services.session_state_service import SessionStateService
-
+from services.auth import auth_service
 dotenv.load_dotenv()
 
+auth_service.verify_auth()
 openai_api_key = os.getenv("OPENAI_API_KEY")
 session_state_service = SessionStateService()
 chat_message = ChatMessage(role=EnumChatRoles.ASSISTANT, content="Como posso te ajudar?")
